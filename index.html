@@ -195,9 +195,9 @@ function flipVertical() {
 function shiftLeft() {
   let newData = makeEmptyData(cols, rows);
 
-  for (let x = 1; x < cols; x++) {
+  for (let x = 0; x < cols; x++) {
     for (let y = 0; y < rows; y++) {
-      newData[x - 1][y] = data[x][y];
+      newData[x][y] = data[(x + 1) % cols][y];
     }
   }
 
@@ -208,9 +208,9 @@ function shiftLeft() {
 function shiftRight() {
   let newData = makeEmptyData(cols, rows);
 
-  for (let x = 0; x < cols - 1; x++) {
+  for (let x = 0; x < cols; x++) {
     for (let y = 0; y < rows; y++) {
-      newData[x + 1][y] = data[x][y];
+      newData[x][y] = data[(x - 1 + cols) % cols][y];
     }
   }
 
@@ -222,8 +222,8 @@ function shiftUp() {
   let newData = makeEmptyData(cols, rows);
 
   for (let x = 0; x < cols; x++) {
-    for (let y = 1; y < rows; y++) {
-      newData[x][y - 1] = data[x][y];
+    for (let y = 0; y < rows; y++) {
+      newData[x][y] = data[x][(y + 1) % rows];
     }
   }
 
@@ -235,8 +235,8 @@ function shiftDown() {
   let newData = makeEmptyData(cols, rows);
 
   for (let x = 0; x < cols; x++) {
-    for (let y = 0; y < rows - 1; y++) {
-      newData[x][y + 1] = data[x][y];
+    for (let y = 0; y < rows; y++) {
+      newData[x][y] = data[x][(y - 1 + rows) % rows];
     }
   }
 
