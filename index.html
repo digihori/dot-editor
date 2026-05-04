@@ -1,0 +1,227 @@
+<div id="pc-dot-editor">
+  <style>
+    #pc-dot-editor {
+      font-family: sans-serif;
+      max-width: 520px;
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      background: #fafafa;
+    }
+
+    #pc-dot-editor h3 {
+      margin-top: 0;
+    }
+
+    #pc-dot-editor .controls {
+      margin-bottom: 12px;
+    }
+
+    #pc-dot-editor button {
+      margin: 4px;
+      padding: 6px 12px;
+      cursor: pointer;
+    }
+
+    #pc-dot-editor .grid {
+      display: grid;
+      gap: 4px;
+      margin: 12px 0;
+      width: max-content;
+    }
+
+    #pc-dot-editor .dot {
+      width: 32px;
+      height: 32px;
+      border: 1px solid #999;
+      background: #fff;
+      cursor: pointer;
+      box-sizing: border-box;
+    }
+
+    #pc-dot-editor .dot.on {
+      background: #222;
+    }
+
+    #pc-dot-editor .hex-area {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    #pc-dot-editor .hex-box {
+      width: 48px;
+      text-align: center;
+    }
+
+    #pc-dot-editor input {
+      width: 44px;
+      padding: 4px;
+      text-align: center;
+      font-family: monospace;
+    }
+
+    #pc-dot-editor .note {
+      font-size: 13px;
+      color: #555;
+      margin-top: 10px;
+    }
+
+    #pc-dot-editor textarea {
+      width: 100%;
+      height: 70px;
+      font-family: monospace;
+      margin-top: 8px;
+    }
+  </style>
+
+  <h3>ポケコン用ドットグラフィックエディタ</h3>
+
+  <div class="controls">
+    <button onclick="pcDotSetMode(5,7)">5×7</button>
+    <button onclick="pcDotSetMode(6,8)">6×8</button>
+    <button onclick="pcDotClear()">クリア</button>
+    <button onclick="pcDotInvert()">反転</button>
+  </div>
+
+  <div id="pcDotMode">現在: 5×7</div>
+  <div id="pcDotGrid" class="grid"></div>
+
+  <div>縦列ごとの16進値</div>
+  <div id="pcDotHexArea" class="hex-area"></div>
+
+  <div class="note">
+    ※ 各列は縦方向のビット値です。上から bit0, bit1, bit2... として計算します。
+  </div>
+
+  <div class="note">まとめ表示</div>
+  <textarea id="pcDotText" readonly></textarea>
+
+  <script>
+    var pcDotCols = 5;
+    var pcDotRows = 7;
+    var pcDotData = [];
+
+    function pcDotInit() {
+      pcDotData = [];
+      for (var x = 0; x < pcDotCols; x++) {
+        pcDotData[x] = [];
+        for (var y = 0; y < pcDotRows; y++) {
+          pcDotData[x][y] = 0;
+        }
+      }
+      pcDotRender();
+    }
+
+    function pcDotSetMode(cols, rows) {
+      pcDotCols = cols;
+      pcDotRows = rows;
+      document.getElementById("pcDotMode").textContent = "現在: " + cols + "×" + rows;
+      pcDotInit();
+    }
+
+    function pcDotRender() {
+      var grid = document.getElementById("pcDotGrid");
+      grid.innerHTML = "";
+      grid.style.gridTemplateColumns = "repeat(" + pcDotCols + ", 32px)";
+
+      for (var y = 0; y < pcDotRows; y++) {
+        for (var x = 0; x < pcDotCols; x++) {
+          var dot = document.createElement("div");
+          dot.className = "dot" + (pcDotData[x][y] ? " on" : "");
+          dot.setAttribute("data-x", x);
+          dot.setAttribute("data-y", y);
+          dot.onclick = function() {
+            var dx = parseInt(this.getAttribute("data-x"));
+            var dy = parseInt(this.getAttribute("data-y"));
+            pcDotData[dx][dy] = pcDotData[dx][dy] ? 0 : 1;
+            pcDotRender();
+          };
+          grid.appendChild(dot);
+        }
+      }
+
+      pcDotRenderHex();
+    }
+
+    function pcDotRenderHex() {
+      var area = document.getElementById("pcDotHexArea");
+      area.innerHTML = "";
+
+      var values = [];
+
+      for (var x = 0; x < pcDotCols; x++) {
+        var value = 0;
+        for (var y = 0; y < pcDotRows; y++) {
+          if (pcDotData[x][y]) {
+            value += (1 << y);
+          }
+        }
+
+        values.push(value);
+
+        var box = document.createElement("div");
+        box.className = "hex-box";
+
+        var label = document.createElement("div");
+        label.textContent = "列" + (x + 1);
+
+        var input = document.createElement("input");
+        input.value = pcDotToHex(value);
+        input.setAttribute("data-col", x);
+        input.onchange = function() {
+          var col = parseInt(this.getAttribute("data-col"));
+          var v = parseInt(this.value.replace(/^0x/i, ""), 16);
+          if (isNaN(v)) v = 0;
+          pcDotSetColumnValue(col, v);
+        };
+
+        box.appendChild(label);
+        box.appendChild(input);
+        area.appendChild(box);
+      }
+
+      document.getElementById("pcDotText").value =
+        values.map(function(v) { return "0x" + pcDotToHex(v); }).join(", ");
+    }
+
+    function pcDotToHex(value) {
+      var digits = pcDotRows <= 7 ? 2 : 2;
+      var s = value.toString(16).toUpperCase();
+      while (s.length < digits) s = "0" + s;
+      return s;
+    }
+
+    function pcDotSetColumnValue(col, value) {
+      var max = (1 << pcDotRows) - 1;
+      value = value & max;
+
+      for (var y = 0; y < pcDotRows; y++) {
+        pcDotData[col][y] = (value & (1 << y)) ? 1 : 0;
+      }
+
+      pcDotRender();
+    }
+
+    function pcDotClear() {
+      for (var x = 0; x < pcDotCols; x++) {
+        for (var y = 0; y < pcDotRows; y++) {
+          pcDotData[x][y] = 0;
+        }
+      }
+      pcDotRender();
+    }
+
+    function pcDotInvert() {
+      for (var x = 0; x < pcDotCols; x++) {
+        for (var y = 0; y < pcDotRows; y++) {
+          pcDotData[x][y] = pcDotData[x][y] ? 0 : 1;
+        }
+      }
+      pcDotRender();
+    }
+
+    pcDotInit();
+  </script>
+</div>
