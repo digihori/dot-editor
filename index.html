@@ -197,7 +197,8 @@ function shiftLeft() {
 
   for (let x = 0; x < cols; x++) {
     for (let y = 0; y < rows; y++) {
-      newData[x][y] = data[(x + 1) % cols][y];
+      let nx = (x - 1 + cols) % cols;
+      newData[nx][y] = data[x][y];
     }
   }
 
@@ -210,7 +211,8 @@ function shiftRight() {
 
   for (let x = 0; x < cols; x++) {
     for (let y = 0; y < rows; y++) {
-      newData[x][y] = data[(x - 1 + cols) % cols][y];
+      let nx = (x + 1) % cols;
+      newData[nx][y] = data[x][y];
     }
   }
 
@@ -223,7 +225,8 @@ function shiftUp() {
 
   for (let x = 0; x < cols; x++) {
     for (let y = 0; y < rows; y++) {
-      newData[x][y] = data[x][(y + 1) % rows];
+      let ny = (y - 1 + rows) % rows;
+      newData[x][ny] = data[x][y];
     }
   }
 
@@ -236,7 +239,8 @@ function shiftDown() {
 
   for (let x = 0; x < cols; x++) {
     for (let y = 0; y < rows; y++) {
-      newData[x][y] = data[x][(y - 1 + rows) % rows];
+      let ny = (y + 1) % rows;
+      newData[x][ny] = data[x][y];
     }
   }
 
