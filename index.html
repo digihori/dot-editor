@@ -104,6 +104,7 @@ function render() {
   }
 
   renderHex();
+  saveData();
 }
 
 function toHex2(v) {
@@ -248,7 +249,35 @@ function shiftDown() {
   render();
 }
 
-init();
+function saveData() {
+  const obj = {
+    cols: cols,
+    rows: rows,
+    data: data
+  };
+  localStorage.setItem("dotEditorData", JSON.stringify(obj));
+}
+
+function loadData() {
+  const str = localStorage.getItem("dotEditorData");
+  if (!str) return;
+
+  try {
+    const obj = JSON.parse(str);
+    cols = obj.cols;
+    rows = obj.rows;
+    data = obj.data;
+  } catch(e) {
+    console.log("load error", e);
+  }
+}
+
+loadData();
+if (!data || data.length === 0) {
+  init();
+} else {
+  render();
+}
 </script>
 
 </body>
