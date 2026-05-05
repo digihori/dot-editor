@@ -148,7 +148,7 @@ function renderHex() {
   }
 
   document.getElementById("text").value =
-    values.map(v => "&" + toHex2(v)).join(", ") + "\n" +
+    values.map(v => "&" + toHex2(v)).join(",") + "\n" +
     values.map(v => "0x" + toHex2(v)).join(", ");
 }
 
