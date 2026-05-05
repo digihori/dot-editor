@@ -145,6 +145,37 @@ function renderHex() {
       render();
     };
 
+    input.onkeydown = function(e) {
+      if (e.key === "Tab") {
+        e.preventDefault();
+
+        let col = parseInt(this.dataset.col, 10);
+        let val = parseInt(this.value.replace(/^0x/i, "").replace(/^&/i, ""), 16);
+        if (isNaN(val)) val = 0;
+
+        let max = (1 << rows) - 1;
+        val &= max;
+
+        for (let y = 0; y < rows; y++) {
+          data[col][y] = (val & (1 << y)) ? 1 : 0;
+        }
+
+        render();
+
+        let nextCol = e.shiftKey
+          ? (col - 1 + cols) % cols
+          : (col + 1) % cols;
+
+        setTimeout(function() {
+          let nextInput = document.querySelector('input[data-col="' + nextCol + '"]');
+          if (nextInput) {
+            nextInput.focus();
+            nextInput.select();
+          }
+        }, 0);
+      }
+    };
+
     h.appendChild(input);
   }
 
